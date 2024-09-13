@@ -6,7 +6,6 @@ You can find more information at [mango.ttic.edu](https://mango.ttic.edu).
 
 If you have any questions, please feel free to open an [issue](https://github.com/Oaklight/mango/issues).
 
-
 ## Abstract
 
 Large language models such as ChatGPT and GPT-4 have recently achieved astonishing performance on a variety of natural language processing tasks.
@@ -20,17 +19,24 @@ Our MANGO benchmark will facilitate future research on methods that improve the 
 ## Setup
 
 ```
-git clone git@github.com:Oaklight/mango.git
+git clone https://github.com/Oaklight/mango.git
 cd mango
-conda create -f environment.yml --name mango
+
+conda create -f env/environment.yml --name mango
 conda activate mango
-pip install -r requirements.txt
+
+# for inference only
+pip install -r env/infer_requirements.txt
+# for evaluation only
+pip install -r env/eval_requirements.txt
 ```
 
 ## Dataset
+
 Our data are hosted on [Huggingface](https://huggingface.co/mango-ttic). You can get more information from [this link](https://oaklight.github.io/mgwb/data/).
 
 Here we demonstrate how to download the data of the first 70 moves for each game:
+
 ```
 cd mango
 wget https://huggingface.co/datasets/mango-ttic/data/resolve/main/data-70steps.tar.zst
@@ -39,12 +45,12 @@ rm data-70steps.tar.zst
 mv data-70steps data
 ```
 
-We also provided this dataset in this repo, please refer to folder `data`.
+We also provided this dataset in this repo, please refer to folder `data` .
 
 ## Inference
-We put the inference codebase in the folder `mango/inference/`.
-You can refer to the README file under this folder for more information of the codebase.
 
+We put the inference codebase in the folder `mango/inference/` .
+You can refer to the README file under this folder for more information of the codebase.
 
 Here we show how to query the `claude-instant-1` model to perform inference:
 
@@ -56,18 +62,22 @@ python mango/inference/main.py --exp_tag debug --data_folder ./data --save_folde
 
 ## Evaluation
 
-Please refer to `mango/evaluation/scripts/evaluate.py`.
+Please refer to `mango/evaluation/scripts/evaluate.py` .
 
 dest-finding example:
+
 ```
 python -m  mango.evaluation.scripts.evaluate evaluate_model_dest_finding ./examples/llm_output_example/claude-instant-1_desti_finding_debug  ./data ./examples/llm_eval_exmple/df
 ```
+
 route-finding example:
+
 ```
 python -m  mango.evaluation.scripts.evaluate evaluate_model_route_finding ./examples/llm_output_example/claude-instant-1_route_finding_debug  ./data ./examples/llm_eval_exmple/rf
 ```
 
 ## Citation
+
 ```bibtex
 @misc{ding2024mango,
       title={MANGO: A Benchmark for Evaluating Mapping and Navigation Abilities of Large Language Models}, 
