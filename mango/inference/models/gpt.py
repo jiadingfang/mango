@@ -1,6 +1,9 @@
 import os
-import openai
+# import openai
 import tiktoken
+from openai import OpenAI
+
+client = OpenAI()
 
 # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_handle_rate_limits.ipynb
 from tenacity import (
@@ -11,8 +14,8 @@ from tenacity import (
 
 class GPTModel:
     def __init__(self, model_name, temperature, max_tokens_to_sample=512) -> None:
-        api_key = os.getenv("OPENAI_API_KEY")
-        openai.api_key = api_key
+        # api_key = os.getenv("OPENAI_API_KEY")
+        # openai.api_key = api_key
 
         self.model_name = model_name
         self.temperature = temperature
@@ -26,11 +29,19 @@ class GPTModel:
         assert len(prompt_list) == 1, "gpt models currently only supprt querying one sample at a time."
         prompt = prompt_list[0]
         
-        response = openai.ChatCompletion.create(
+        # response = openai.ChatCompletion.create(
+        #     model=self.model_name,
+        #     messages=[{"role": "system","content": "You are a helpful assistant."}, {"role": "user", "content": prompt}],
+        #     temperature=self.temperature,
+        #     max_tokens=self.max_tokens_to_sample
+        # ).choices[0].message
+
+
+        response = client.chat.completions.create(
             model=self.model_name,
-            messages=[{"role": "system","content": "You are a helpful assistant."}, {"role": "user", "content": prompt}],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens_to_sample
+            messages=[{"role": "user", "content": prompt}], # o1 models do not allow system messages
+            # temperature=self.temperature, # temperature is not supported for o1 models
+            # max_tokens=self.max_tokens_to_sample # max_tokens is not supported for o1 models
         ).choices[0].message
 
         return [response]
@@ -69,7 +80,8 @@ class GPTModel:
             location_space_list = sample['location_space_list']
             location_space_prompt = "The list of locations are: {}.".format(location_space_list)
 
-            sample['question'] ="""!!! Can you find a path from "{}" to "{}", and format the output as a python list of python dictionary with keys 'location_before', 'action' and 'location_after'? Start your response with '['.""".format(src_node, dst_node)
+            # sample['question'] ="""!!! Can you find a path from "{}" to "{}", and format the output as a python list of python dictionary with keys 'location_before', 'action' and 'location_after'? Start your response with '['.""".format(src_node, dst_node)
+            sample['question'] ="""!!! Can you find a path from "{}" to "{}", and format the output as a python list of python dictionary with keys 'location_before', 'action' and 'location_after'?""".format(src_node, dst_node)
             model_input = f"{prefix_walkthrough}\n\n{action_space_prompt}\n{location_space_prompt}\n{sample['question']}"
             input_list.append(model_input)
 
@@ -97,7 +109,8 @@ class GPTModel:
             location_space_list = sample['location_space_list']
             location_space_prompt = "The list of locations are: {}.".format(location_space_list)
 
-            sample['question'] ="""!!! Starting from place "{}", perform a list of action {}, where are you now? Describe the trajectory in a python list of python dictionary with keys 'location_before', 'action' and 'location_after'. Start your response with '['.""".format(src_node, action_list)
+            # sample['question'] ="""!!! Starting from place "{}", perform a list of action {}, where are you now? Describe the trajectory in a python list of python dictionary with keys 'location_before', 'action' and 'location_after'. Start your response with '['.""".format(src_node, action_list)
+            sample['question'] ="""!!! Starting from place "{}", perform a list of action {}, where are you now? Describe the trajectory in a python list of python dictionary with keys 'location_before', 'action' and 'location_after'.""".format(src_node, action_list)
             model_input = f"{prefix_walkthrough}\n\n{action_space_prompt}\n{location_space_prompt}\n{sample['question']}"
             input_list.append(model_input)
 

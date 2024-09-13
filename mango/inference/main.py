@@ -11,7 +11,7 @@ from tqdm import tqdm
 from utils import read_text, load_json, load_jsonl, save_json
 
 def load_model(model_name, temperature, ckpt_dir, tokenizer_path, batch_size):
-    if model_name in ['gpt-3.5', 'gpt4']:
+    if model_name in ['gpt-3.5', 'gpt4', 'o1-preview', 'o1-mini']:
         from models.gpt import GPTModel
         model = GPTModel(model_name, temperature)
     elif model_name in ['claude-instant-1', 'claude2']:
@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--save_folder', type=str, default='./results')
     parser.add_argument('--game_name', type=str, default='905')
     parser.add_argument('--task_type', type=str, choices=['route_finding', 'desti_finding'])
-    parser.add_argument('--model_name', type=str, choices=['gpt-3.5', 'gpt4', 'claude-instant-1', 'claude2', 'llama2', 'rwkv'])
+    parser.add_argument('--model_name', type=str, choices=['gpt-3.5', 'gpt4', 'claude-instant-1', 'claude2', 'llama2', 'rwkv', 'o1-mini', 'o1-preview'])
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--max_token_num', type=int, default=3600)
     parser.add_argument('--max_step_num', type=int, default=70)
@@ -179,9 +179,13 @@ if __name__=='__main__':
     for batch in tqdm(batched_sample_list):
         samples, answers = model.process(batch, task_type=task_type)
         for idx, answer in enumerate(answers):
-            if answer.startswith('Error'):
+            # if answer is a string, it means there is an error
+            if isinstance(answer, str) and answer.startswith('Error'):
                 print (f"sample {samples[idx]['sample_id']}: {answer}")
                 exit(0)
+            # if answer.startswith('Error'):
+            #     print (f"sample {samples[idx]['sample_id']}: {answer}")
+            #     exit(0)
 
-            samples[idx]['answer'] = answer
+            samples[idx]['answer'] = answer.content
             save_json(samples[idx], samples[idx]['save_file'])
